@@ -1,0 +1,114 @@
+Imports System.Runtime.Remoting
+Imports MySql.Data.MySqlClient
+Imports Microsoft.VisualBasic.ApplicationServices
+Imports Microsoft.Win32
+Imports System.Data.SqlClient
+
+Public Class Form1
+    Dim sqlConn As New MySqlConnection
+    Dim sqlCmd As New MySqlCommand
+    Dim sqlRd As MySqlDataReader
+    Dim sqlDt As New DataTable
+    Dim dta As New MySqlDataAdapter
+
+    Dim query As String
+
+    Dim server As String = "server=localhost;user=root;password=bandiola;port=3310;database=basketball_match"
+    Dim from As String = "* FROM"
+
+    Private Sub loadTable()
+        sqlConn.ConnectionString = server
+
+        sqlConn.Open()
+        sqlCmd.Connection = sqlConn
+        sqlCmd.CommandText = "SELECT * FROM basketball_match.scoring"
+
+        sqlRd = sqlCmd.ExecuteReader
+        sqlDt.Load(sqlRd)
+        sqlRd.Close()
+        sqlConn.Close()
+        DataGridView1.DataSource = sqlDt
+    End Sub
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        loadTable()
+    End Sub
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        sqlConn.ConnectionString = server
+
+        Try
+            sqlConn.Open()
+            query = "INSERT into basketball_match.scoring (PLR_NUM,SCR_PTS,SCR_QTR) VALUES(" & TextBox2.Text & "," & TextBox3.Text & "," & TextBox4.Text & ");"
+
+            sqlCmd = New MySqlCommand(query, sqlConn)
+            sqlRd = sqlCmd.ExecuteReader
+            sqlRd.Close()
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "MySQL Connection", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Finally
+            sqlConn.Dispose()
+        End Try
+
+        loadTable()
+    End Sub
+
+    Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick, DataGridView1.CellClick
+
+        Try
+            TextBox1.Text = DataGridView1.SelectedRows(0).Cells(0).Value.ToString
+            TextBox2.Text = DataGridView1.SelectedRows(0).Cells(1).Value.ToString
+            TextBox3.Text = DataGridView1.SelectedRows(0).Cells(2).Value.ToString
+            TextBox4.Text = DataGridView1.SelectedRows(0).Cells(3).Value.ToString
+        Catch ex As Exception
+            MsgBox(ex.Message)
+        End Try
+    End Sub
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        For Each row As DataGridViewRow In DataGridView1.SelectedRows
+            DataGridView1.Rows.Remove(row)
+        Next
+
+        sqlConn.ConnectionString = server
+        sqlConn.Open()
+        sqlCmd.Connection = sqlConn
+
+        With sqlCmd
+            .CommandText = "DELETE FROM basketball_match.scoring WHERE SCR_ID=@SCR_ID"
+            .CommandType = CommandType.Text
+            .Parameters.AddWithValue("@SCR_ID", TextBox1.Text)
+        End With
+        sqlCmd.ExecuteNonQuery()
+        sqlCmd.Parameters.Clear()
+        sqlConn.Close()
+
+        loadTable()
+        TextBox1.Text = ""
+        TextBox2.Text = ""
+        TextBox3.Text = ""
+        TextBox4.Text = ""
+    End Sub
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        sqlConn.ConnectionString = server
+        sqlConn.Open()
+        sqlCmd.Connection = sqlConn
+
+        With sqlCmd
+            .CommandText = "UPDATE basketball_match.scoring SET PLR_NUM=@PLR_NUM, SCR_PTS=@SCR_PTS, SCR_QTR=@SCR_QTR WHERE SCR_ID=@SCR_ID"
+            .CommandType = CommandType.Text
+            .Parameters.AddWithValue("@PLR_NUM", TextBox2.Text)
+            .Parameters.AddWithValue("@SCR_PTS", TextBox3.Text)
+            .Parameters.AddWithValue("@SCR_QTR", TextBox4.Text)
+            .Parameters.AddWithValue("@SCR_ID", TextBox1.Text)
+
+        End With
+        sqlCmd.ExecuteNonQuery()
+        sqlCmd.Parameters.Clear()
+        sqlConn.Close()
+
+        loadTable()
+        TextBox1.Text = ""
+        TextBox2.Text = ""
+        TextBox3.Text = ""
+        TextBox4.Text = ""
+    End Sub
+
+End Class
