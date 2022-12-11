@@ -1,0 +1,137 @@
+Imports MySql.Data.MySqlClient
+Imports Microsoft.VisualBasic.ApplicationServices
+Imports Microsoft.Win32
+Imports System.Windows.Forms.VisualStyles.VisualStyleElement
+
+Public Class Form1
+
+    Dim sqlConn As New MySqlConnection
+    Dim sqlCmd As New MySqlCommand
+    Dim sqlRd As MySqlDataReader
+    Dim sqlDt As New DataTable
+    Dim dta As New MySqlDataAdapter
+
+
+    Dim sqlQuery As String
+
+    Dim server As String = "server=localhost;user=root;password=Ferrari458Italia;port=3310;database=basketball_match"
+    Dim from As String = "* FROM"
+
+    Private Sub loadTable()
+        sqlConn.ConnectionString = server
+
+        sqlConn.Open()
+        sqlCmd.Connection = sqlConn
+        sqlCmd.CommandText = "SELECT * FROM basketball_match.player"
+
+        sqlRd = sqlCmd.ExecuteReader
+        sqlDt.Load(sqlRd)
+        sqlRd.Close()
+        sqlConn.Close()
+        DataGridView1.DataSource = sqlDt
+    End Sub
+    Private Sub Form1(sender As Object, e As EventArgs) Handles MyBase.Load
+        loadTable()
+    End Sub
+
+
+    Private Sub btnAdNew_Click(sender As Object, e As EventArgs) Handles btnAddNew.Click
+        sqlConn.ConnectionString = server
+        Try
+            sqlConn.Open()
+            sqlQuery = "Insert into basketball_match.player(PLR_NUM, PLR_NAME, TEAM_NAME)
+value('" & PLR_NUM.Text & "','" & PLR_NAME.Text & "','" & TEAM_NAME.Text & "')"
+
+            sqlCmd = New MySqlCommand(sqlQuery, sqlConn)
+            sqlRd = sqlCmd.ExecuteReader
+            sqlConn.Close()
+
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "MySQL Connection", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Finally
+            sqlConn.Dispose()
+        End Try
+
+        loadTable()
+
+
+
+    End Sub
+
+
+    Private Sub TextBox3_TextChanged(sender As Object, e As EventArgs) Handles TEAM_NAME.TextChanged
+
+    End Sub
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+    End Sub
+
+    Private Sub btnDelete_Click(sender As Object, e As EventArgs) Handles btnDelete.Click
+        sqlConn.ConnectionString = server
+        Try
+            sqlConn.Open()
+            sqlQuery = "Delete from basketball_match.player  where  PLR_NUM= '" & PLR_NUM.Text & "'"
+
+            sqlCmd = New MySqlCommand(sqlQuery, sqlConn)
+            sqlRd = sqlCmd.ExecuteReader
+            sqlConn.Close()
+
+
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "MySQL Connection", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Finally
+            sqlConn.Dispose()
+        End Try
+
+        loadTable()
+
+
+    End Sub
+
+    Private Sub btnUpdate_Click(sender As Object, e As EventArgs) Handles btnUpdate.Click
+        sqlConn.ConnectionString = server
+        Try
+            sqlConn.Open()
+            sqlQuery = "Update basketball_match.player  set PLR_NAME =  '" & PLR_NAME.Text & "' where PLR_NUM= '" & PLR_NUM.Text & "'"
+
+            sqlCmd = New MySqlCommand(sqlQuery, sqlConn)
+            sqlRd = sqlCmd.ExecuteReader
+            sqlConn.Close()
+
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "MySQL Connection", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Finally
+            sqlConn.Dispose()
+        End Try
+
+        loadTable()
+    End Sub
+
+    Private Sub Label1_Click(sender As Object, e As EventArgs) Handles numberLabel.Click
+
+    End Sub
+
+    Private Sub Label2_Click(sender As Object, e As EventArgs) Handles nameLabel.Click
+
+    End Sub
+
+    Private Sub teamLabel_Click(sender As Object, e As EventArgs) Handles teamLabel.Click
+
+    End Sub
+
+    Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
+        If e.RowIndex >= 0 Then
+            Dim row As DataGridViewRow
+            row = Me.DataGridView1.Rows(e.RowIndex)
+
+            PLR_NUM.Text = row.Cells("PLR_NUM").Value.ToString
+            PLR_NAME.Text = row.Cells("PLR_NAME").Value.ToString
+            TEAM_NAME.Text = row.Cells("TEAM_NAME").Value.ToString
+        End If
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs)
+        loadTable()
+    End Sub
+End Class
